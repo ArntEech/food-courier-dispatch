@@ -1,0 +1,6 @@
+courier_id,name,phone,status,current_location_id
+1,Courier A,0500000001,AVAILABLE,1
+2,Courier B,0500000002,AVAILABLE,3
+3,Courier C,0500000003,BUSY,6
+4,Courier D,0500000004,AVAILABLE,5
+5,Courier E,0500000005,OFFLINE,7
