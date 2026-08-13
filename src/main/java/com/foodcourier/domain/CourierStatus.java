@@ -1,5 +1,8 @@
 package com.foodcourier.domain;
 
-public class CourierStatus {
-    
+public enum CourierStatus {
+
+    AVAILABLE,
+    BUSY,
+    OFFLINE
 }

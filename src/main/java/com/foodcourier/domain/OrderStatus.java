@@ -1,5 +1,12 @@
 package com.foodcourier.domain;
 
-public class OrderStatus {
-    
+public enum OrderStatus {
+
+    RECEIVED,
+    PREPARING,
+    READY,
+    ASSIGNED,
+    PICKED_UP,
+    DELIVERED,
+    CANCELLED
 }
