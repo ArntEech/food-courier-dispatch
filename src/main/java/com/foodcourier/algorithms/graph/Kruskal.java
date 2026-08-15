@@ -19,24 +19,24 @@ import java.util.List;
 public class Kruskal<V> {
 
     /**
-     * @param vertices  every vertex in the graph (each gets its own set first)
-     * @param edges     every edge in the graph, unsorted
+     * @param vertices    every vertex in the graph (each gets its own set first)
+     * @param edges       every edge in the graph, unsorted
      * @param disjointSet a DisjointSetInterface implementation (Caleb's real
      *                    one once available; this class does not care which)
      * @return the list of edges that form the MST
      */
     public List<Edge<V>> findMST(List<V> vertices,
-                                  List<Edge<V>> edges,
-                                  DisjointSetInterface<V> disjointSet) {
+            List<Edge<V>> edges,
+            DisjointSetInterface<V> disjointSet) {
 
         // 1. every vertex starts in its own set
         for (V v : vertices) {
             disjointSet.makeSet(v);
         }
 
-        // 2. sort edges by weight ascending (merge sort — no built-in Collections.sort)
-        Edge<V>[] sorted = edges.toArray(new Edge[0]);
-        mergeSort(sorted, 0, sorted.length - 1);
+        // 2. sort edges by weight ascending (merge sort on a List — no
+        // generic array creation, so no unchecked-conversion warning)
+        List<Edge<V>> sorted = mergeSort(edges);
 
         // 3. greedily add edges that don't form a cycle
         List<Edge<V>> mst = new ArrayList<>();
@@ -49,26 +49,32 @@ public class Kruskal<V> {
         return mst;
     }
 
-    // ---- merge sort on Edge[], by weight ----
+    // ---- merge sort on List<Edge<V>>, by weight ----
 
-    private void mergeSort(Edge<V>[] arr, int lo, int hi) {
-        if (lo >= hi) return;
-        int mid = (lo + hi) / 2;
-        mergeSort(arr, lo, mid);
-        mergeSort(arr, mid + 1, hi);
-        merge(arr, lo, mid, hi);
+    private List<Edge<V>> mergeSort(List<Edge<V>> input) {
+        if (input.size() <= 1) {
+            return input;
+        }
+        int mid = input.size() / 2;
+        List<Edge<V>> left = mergeSort(new ArrayList<>(input.subList(0, mid)));
+        List<Edge<V>> right = mergeSort(new ArrayList<>(input.subList(mid, input.size())));
+        return merge(left, right);
     }
 
-    @SuppressWarnings("unchecked")
-    private void merge(Edge<V>[] arr, int lo, int mid, int hi) {
-        Edge<V>[] left = java.util.Arrays.copyOfRange(arr, lo, mid + 1);
-        Edge<V>[] right = java.util.Arrays.copyOfRange(arr, mid + 1, hi + 1);
-
-        int i = 0, j = 0, k = lo;
-        while (i < left.length && j < right.length) {
-            arr[k++] = (left[i].weight <= right[j].weight) ? left[i++] : right[j++];
+    private List<Edge<V>> merge(List<Edge<V>> left, List<Edge<V>> right) {
+        List<Edge<V>> result = new ArrayList<>(left.size() + right.size());
+        int i = 0, j = 0;
+        while (i < left.size() && j < right.size()) {
+            if (left.get(i).weight <= right.get(j).weight) {
+                result.add(left.get(i++));
+            } else {
+                result.add(right.get(j++));
+            }
         }
-        while (i < left.length) arr[k++] = left[i++];
-        while (j < right.length) arr[k++] = right[j++];
+        while (i < left.size())
+            result.add(left.get(i++));
+        while (j < right.size())
+            result.add(right.get(j++));
+        return result;
     }
 }
