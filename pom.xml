@@ -13,4 +13,14 @@
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
+    <!-- We added this section to tell Maven to download JUnit 5 -->
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
 </project>
