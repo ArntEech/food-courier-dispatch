@@ -10,6 +10,10 @@ public interface GraphInterface<V> {
 
     void addEdge(V from, V to, double weight);
 
+    void addUndirectedEdge(V from, V to);
+
+    void addUndirectedEdge(V from, V to, double weight);
+
     boolean containsVertex(V vertex);
 
     List<V> getNeighbors(V vertex);
