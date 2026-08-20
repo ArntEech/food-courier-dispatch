@@ -7,9 +7,19 @@ import com.foodcourier.domain.OrderStatus;
 import com.foodcourier.domain.Priority;
 import com.foodcourier.domain.Restaurant;
 
+import org.junit.jupiter.api.Test;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
-public class DispatchServiceTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class DispatchServiceTest {
 
     private static Order createOrder(String id, Priority priority) {
 
@@ -41,15 +51,8 @@ public class DispatchServiceTest {
         );
     }
 
-    public static void main(String[] args) {
-
-        testInsertAndFindOrder();
-        testDispatchNextAndFindOrder();
-
-        System.out.println("All DispatchService tests passed.");
-    }
-
-    private static void testInsertAndFindOrder() {
+    @Test
+    void insertAndFindOrder() {
 
         DispatchService service = new DispatchService();
 
@@ -61,18 +64,12 @@ public class DispatchServiceTest {
 
         Optional<Order> result = service.findOrder("O2");
 
-        if (result.isEmpty()) {
-            throw new AssertionError("Expected O2 to be found");
-        }
-
-        if (!result.get().getId().equals("O2")) {
-            throw new AssertionError("Expected to find O2");
-        }
-
-        System.out.println("testInsertAndFindOrder passed");
+        assertTrue(result.isPresent());
+        assertEquals("O2", result.get().getId());
     }
 
-    private static void testDispatchNextAndFindOrder() {
+    @Test
+    void dispatchNextReturnsHighestPriorityAndRemovesIt() {
 
         DispatchService service = new DispatchService();
 
@@ -84,32 +81,56 @@ public class DispatchServiceTest {
 
         Order dispatched = service.dispatchNext();
 
-        if (dispatched == null) {
-            throw new AssertionError("Expected an order to be dispatched");
+        assertNotNull(dispatched);
+        assertEquals("O2", dispatched.getId());
+
+        assertTrue(service.findOrder("O2").isEmpty());
+        assertTrue(service.findOrder("O1").isPresent());
+    }
+
+    @Test
+    void dispatchNextReturnsNullWhenEmpty() {
+
+        DispatchService service = new DispatchService();
+
+        assertNull(service.dispatchNext());
+    }
+
+    @Test
+    void csvOrdersAreDispatchedInPriorityOrder() throws IOException {
+
+        DispatchService service = new DispatchService();
+
+        Path csvPath = Path.of("data/seed/orders.csv");
+
+        try (BufferedReader reader = Files.newBufferedReader(csvPath)) {
+
+            String line = reader.readLine(); // skip header
+
+            while ((line = reader.readLine()) != null) {
+
+                String[] columns = line.split(",");
+
+                String orderId = columns[0];
+                int priorityValue = Integer.parseInt(columns[4]);
+
+                Priority priority = Priority.values()[priorityValue - 1];
+
+                service.insert(createOrder(orderId, priority));
+            }
         }
 
-        if (!dispatched.getId().equals("O2")) {
-            throw new AssertionError(
-                    "Expected O2 to be dispatched first"
-            );
+        List<Integer> dispatchedPriorities = new ArrayList<>();
+
+        Order order;
+
+        while ((order = service.dispatchNext()) != null) {
+            dispatchedPriorities.add(order.getPriority().getValue());
         }
 
-        Optional<Order> result = service.findOrder("O2");
+        List<Integer> expectedPriorities =
+                List.of(1, 1, 2, 2, 3, 4);
 
-        if (result.isPresent()) {
-            throw new AssertionError(
-                    "O2 should not be found after dispatch"
-            );
-        }
-
-        Optional<Order> remaining = service.findOrder("O1");
-
-        if (remaining.isEmpty()) {
-            throw new AssertionError(
-                    "O1 should still be in the dispatch queue"
-            );
-        }
-
-        System.out.println("testDispatchNextAndFindOrder passed");
+        assertEquals(expectedPriorities, dispatchedPriorities);
     }
 }
