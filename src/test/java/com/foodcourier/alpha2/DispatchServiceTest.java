@@ -105,8 +105,9 @@ class DispatchServiceTest {
 
         try (BufferedReader reader = Files.newBufferedReader(csvPath)) {
 
-            String line = reader.readLine(); // skip header
+            reader.readLine(); // skip header
 
+            String line;
             while ((line = reader.readLine()) != null) {
 
                 String[] columns = line.split(",");
