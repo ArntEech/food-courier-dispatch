@@ -2,6 +2,7 @@ package com.foodcourier.domain;
 
 public enum OrderStatus {
 
+    PENDING,
     RECEIVED,
     PREPARING,
     READY,
