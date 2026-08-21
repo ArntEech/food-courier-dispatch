@@ -63,4 +63,9 @@ public class Order {
                 ", status=" + status +
                 '}';
     }
+
+    public Object getTimestamp() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getTimestamp'");
+    }
 }
