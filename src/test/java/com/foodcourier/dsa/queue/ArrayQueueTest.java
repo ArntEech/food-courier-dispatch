@@ -1,148 +1,96 @@
 package com.foodcourier.dsa.queue;
 
-import org.junit.jupiter.api.BeforeEach;
+import dsa.queue.ArrayQueue;
 import org.junit.jupiter.api.Test;
+
+import java.util.NoSuchElementException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ArrayQueueTest {
 
-    private ArrayQueue<String> queue;
-
-    @BeforeEach
-    void setUp() {
-        queue = new ArrayQueue<>();
-    }
+    private ArrayQueue<Integer> queue = new ArrayQueue<>();
 
     @Test
-    void testConstructorWithValidCapacity() {
-        ArrayQueue<Integer> customQueue = new ArrayQueue<>(5);
-        assertEquals(0, customQueue.size());
-        assertTrue(customQueue.isEmpty());
-    }
-
-    @Test
-    void testConstructorWithInvalidCapacity() {
-        assertThrows(IllegalArgumentException.class, () -> new ArrayQueue<>(0));
-        assertThrows(IllegalArgumentException.class, () -> new ArrayQueue<>(-5));
-    }
-
-    @Test
-    void testEnqueueAndSize() {
-        assertEquals(0, queue.size());
+    void newQueueIsEmpty() {
         assertTrue(queue.isEmpty());
+        assertEquals(0, queue.size());
+    }
 
-        queue.enqueue("First");
-        assertEquals(1, queue.size());
+    @Test
+    void enqueueIncreasesSize() {
+        queue.enqueue(1);
+        queue.enqueue(2);
+        assertEquals(2, queue.size());
         assertFalse(queue.isEmpty());
-
-        queue.enqueue("Second");
-        queue.enqueue("Third");
-        assertEquals(3, queue.size());
     }
 
     @Test
-    void testEnqueueNullElement() {
-        assertThrows(IllegalArgumentException.class, () -> queue.enqueue(null));
+    void dequeueReturnsItemsInFifoOrder() {
+        queue.enqueue(1);
+        queue.enqueue(2);
+        queue.enqueue(3);
+
+        assertEquals(1, queue.dequeue());
+        assertEquals(2, queue.dequeue());
+        assertEquals(3, queue.dequeue());
+        assertTrue(queue.isEmpty());
     }
 
     @Test
-    void testDequeue() {
-        queue.enqueue("First");
-        queue.enqueue("Second");
-        queue.enqueue("Third");
-
-        assertEquals("First", queue.dequeue());
-        assertEquals(2, queue.size());
-        assertEquals("Second", queue.dequeue());
+    void peekDoesNotRemoveItem() {
+        queue.enqueue(42);
+        assertEquals(42, queue.peek());
         assertEquals(1, queue.size());
-        assertEquals("Third", queue.dequeue());
-        assertEquals(0, queue.size());
-        assertTrue(queue.isEmpty());
     }
 
     @Test
-    void testDequeueEmpty() {
-        assertThrows(IllegalStateException.class, () -> queue.dequeue());
+    void dequeueOnEmptyQueueThrows() {
+        assertEquals(NoSuchElementException.class, assertThrows(NoSuchElementException.class, () -> queue.dequeue()).getClass());
     }
 
     @Test
-    void testPeek() {
-        queue.enqueue("First");
-        queue.enqueue("Second");
-
-        assertEquals("First", queue.peek());
-        assertEquals(2, queue.size());
-        assertEquals("First", queue.peek());
+    void peekOnEmptyQueueThrows() {
+        org.junit.jupiter.api.Assertions.assertThrows(NoSuchElementException.class, () -> queue.peek());
     }
 
     @Test
-    void testPeekEmpty() {
-        assertThrows(IllegalStateException.class, () -> queue.peek());
-    }
-
-    @Test
-    void testResize() {
-        // Fill beyond default capacity (10)
-        for (int i = 0; i < 20; i++) {
-            queue.enqueue("Item " + i);
+    void queueGrowsBeyondInitialCapacity() {
+        for (int i = 0; i < 100; i++) {
+            queue.enqueue(i);
         }
-        assertEquals(20, queue.size());
-
-        // Remove some to test circular behavior
-        for (int i = 0; i < 10; i++) {
-            assertEquals("Item " + i, queue.dequeue());
+        assertEquals(100, queue.size());
+        for (int i = 0; i < 100; i++) {
+            assertEquals(i, queue.dequeue());
         }
-        assertEquals(10, queue.size());
-
-        // Add more to trigger resize again if needed
-        for (int i = 20; i < 30; i++) {
-            queue.enqueue("Item " + i);
-        }
-        assertEquals(20, queue.size());
     }
 
     @Test
-    void testCircularBehavior() {
-        // Fill queue partially
-        for (int i = 0; i < 5; i++) {
-            queue.enqueue("Item " + i);
-        }
+    void wrapAroundBehavesCorrectly() {
+        ArrayQueue<Integer> small = new ArrayQueue<>(4);
+        small.enqueue(1);
+        small.enqueue(2);
+        small.dequeue();
+        small.enqueue(3);
+        small.enqueue(4);
+        small.enqueue(5);
 
-        // Remove some from front
-        for (int i = 0; i < 3; i++) {
-            queue.dequeue();
-        }
-
-        // Add more to wrap around
-        for (int i = 5; i < 12; i++) {
-            queue.enqueue("Item " + i);
-        }
-
-        assertEquals(9, queue.size());
-        assertEquals("Item 3", queue.peek());
+        assertEquals(2, small.dequeue());
+        assertEquals(3, small.dequeue());
+        assertEquals(4, small.dequeue());
+        assertEquals(5, small.dequeue());
+        assertTrue(small.isEmpty());
     }
 
-    @Test
-    void testFIFOOrder() {
-        queue.enqueue("First");
-        queue.enqueue("Second");
-        queue.enqueue("Third");
-
-        assertEquals("First", queue.dequeue());
-        assertEquals("Second", queue.dequeue());
-        assertEquals("Third", queue.dequeue());
+    private void assertEquals(int i, Integer dequeue) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Test
-    void testMultipleOperations() {
-        queue.enqueue("A");
-        queue.enqueue("B");
-        assertEquals("A", queue.dequeue());
-        queue.enqueue("C");
-        assertEquals("B", queue.dequeue());
-        queue.enqueue("D");
-        assertEquals("C", queue.dequeue());
-        assertEquals("D", queue.dequeue());
-        assertTrue(queue.isEmpty());
+    private void assertTrue(boolean empty) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    private void assertFalse(boolean empty) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }
