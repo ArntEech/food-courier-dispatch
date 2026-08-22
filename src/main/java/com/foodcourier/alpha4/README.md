@@ -41,21 +41,31 @@ helper methods.
 > section just needs your own explanation of the *why*, since that's
 > what you'll be defending live.
 
-### Dijkstra — Daniel
-> TODO (Daniel): explain why Dijkstra is used for the actual courier
-> route (weighted shortest path road distance/time matters, unlike
-> BFS which treats every edge as equal cost), and any edge cases you
-> handled (disconnected locations, single-node route, negative-weight
-> rejection).
+# Dijkstra — Daniel
 
-### Prim — Daniel
-> TODO (Daniel): explain what Prim demonstrates here, and how it
-> compares to Kruskal (same goal minimum spanning network different
-> approach: Prim grows outward from one start vertex using a heap,
-> Kruskal globally sorts all edges first). Worth noting Kruskal and
-> Prim are cross-checked against each other in `KruskalTest` both
-> agree on total MST weight for a connected graph, against both a
-> hand-traced test graph and real seed road data.
+For the courier system, the thing that actually matters when picking a route between two locations isn't how many roads you cross — it's the real cost of getting there, whether that's measured in distance or travel time. BFS can't capture that: it treats every edge as costing exactly 1, so it would happily return a route with two short hops over one direct road that's actually faster. That's fine for something like "fewest turns," but useless for "cheapest/fastest route," which is what a courier dispatch system needs. Dijkstra solves the actual problem because it accounts for edge weight at every step, always expanding toward whichever reachable location currently has the lowest total cost from the source.
+
+**How the priority queue is used:** `BinaryHeap` only needs to support `insert`, `extractMin`, and `isEmpty` — it doesn't need decrease-key. Instead of updating an existing entry when a shorter distance is found, I just push a new `(vertex, distance)` entry into the heap. When a stale entry for an already-finalized vertex gets popped later, it's simply skipped. This is the standard "lazy deletion" trick that keeps a plain binary heap correct without needing a more complex heap implementation.
+
+**Edge cases handled:**
+- **Disconnected locations:** if a location can't be reached from the source, its distance stays at `Double.POSITIVE_INFINITY` rather than the algorithm crashing or returning a misleading 0. `shortestPath()` returns an empty list for unreachable targets instead of throwing.
+- **Single-node / source-to-itself:** asking for the distance or path from a location to itself returns `0.0` and a single-element path, with no special-casing needed — the path-reconstruction loop naturally stops as soon as it reaches the source.
+- **Negative-weight rejection:** Dijkstra's correctness *depends on* non-negative edge weights (once a vertex is finalized, a negative edge could invalidate that decision). Rather than silently producing wrong answers, the algorithm throws `IllegalArgumentException` the moment it encounters a negative-weight edge, so a bad input fails loudly instead of corrupting a "shortest" route quietly.
+
+---
+
+# Prim — Daniel
+
+Prim's algorithm demonstrates how to build the cheapest possible network that still connects every location — useful if the team ever needs to reason about, say, the minimum-cost set of roads/links needed to keep every drop-off point reachable, rather than the cheapest path between two specific points (which is what Dijkstra is for). Same overall goal as Kruskal — minimum spanning tree — but a different strategy for getting there:
+
+- **Prim** grows the tree outward from one starting vertex. At each step, it looks only at edges on the current *frontier* of the tree (edges connecting an included vertex to one not yet included) and picks the cheapest one, using a heap to always surface that cheapest frontier edge first. It's a local, incremental view of the graph.
+- **Kruskal** takes a global view instead: sort *every* edge in the graph by weight up front, then greedily add the next-cheapest edge as long as it doesn't create a cycle — checked with a disjoint-set/union-find structure, without caring which specific vertices it connects.
+
+Both are greedy and both are provably correct, and for the same connected graph they always converge on the same total MST weight, even though the edges they pick along the way and the order they pick them in can differ. That's exactly what `KruskalTest` verifies: it cross-checks Prim's and Kruskal's total MST weight against each other on both a hand-traced test graph (where the correct answer is known ahead of time) and real seed road data (a more realistic, harder-to-hand-verify case) — agreement between two structurally different algorithms is a strong signal that both implementations are correct, rather than both being wrong in the same way.
+
+**Edge cases handled:**
+- **Disconnected graph:** if the graph isn't fully connected from the start vertex, Prim returns the MST of just the reachable component (a "forest" fragment) rather than failing. `connectsAllVertices()` reports `false` in this case so callers can detect that the result doesn't span the whole graph.
+- **Single vertex:** returns an empty edge list with `0.0` total weight, and `connectsAllVertices()` is trivially `true` since there's nothing left to connect.
 
 ### Kruskal — Jonathan (this section is mine, written in full)
 
