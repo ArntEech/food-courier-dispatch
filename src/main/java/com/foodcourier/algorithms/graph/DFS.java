@@ -1,7 +1,10 @@
 package com.foodcourier.algorithms.graph;
 
+import com.foodcourier.dsa.graph.Edge;
 import com.foodcourier.dsa.graph.Graph;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -18,6 +21,11 @@ import java.util.NoSuchElementException;
  *
  * Time complexity:  O(V + E)
  * Space complexity: O(V)
+ *
+ * NOTE: uses java.util.HashSet for visited-tracking, since Graph<V> is
+ * generic (no index mapping to drive an array-based visited[] the way an
+ * int-ID graph would). Matches the same pattern already used in
+ * Dijkstra.java (java.util.Map) and BFS.java in this package.
  */
 public final class DFS {
 
@@ -25,13 +33,14 @@ public final class DFS {
         // static utility class
     }
 
-    /** Minimal growable array stack used purely to drive the DFS frontier. */
-    private static final class IntStack {
-        private int[] data;
+    /** Minimal growable generic array stack used purely to drive the DFS frontier. */
+    private static final class GenericStack<T> {
+        private Object[] data;
         private int top;
 
-        IntStack(int capacity) {
-            data = new int[Math.max(capacity, 4)];
+        @SuppressWarnings("unchecked")
+        GenericStack(int capacity) {
+            data = new Object[Math.max(capacity, 4)];
             top = 0;
         }
 
@@ -39,86 +48,75 @@ public final class DFS {
             return top == 0;
         }
 
-        void push(int value) {
+        void push(T value) {
             if (top == data.length) {
                 grow();
             }
             data[top++] = value;
         }
 
-        int pop() {
+        @SuppressWarnings("unchecked")
+        T pop() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Stack is empty");
             }
-            return data[--top];
+            return (T) data[--top];
         }
 
         private void grow() {
-            int[] newData = new int[data.length * 2];
+            Object[] newData = new Object[data.length * 2];
             System.arraycopy(data, 0, newData, 0, top);
             data = newData;
         }
     }
 
     /**
-     * Traverses the graph depth-first starting from {@code startId}.
+     * Traverses the graph depth-first starting from {@code start}.
      *
-     * @return the visited vertex ids, in the order they were first discovered.
+     * @return the visited vertices, in the order they were first discovered.
      */
-    public static String[] traverse(Graph graph, String startId) {
+    public static <V> List<V> traverse(Graph<V> graph, V start) {
         if (graph == null) {
             throw new IllegalArgumentException("Graph must not be null");
         }
-        if (!graph.containsVertex(startId)) {
-            throw new NoSuchElementException("Unknown start vertex: " + startId);
+        if (!graph.containsVertex(start)) {
+            throw new NoSuchElementException("Unknown start vertex: " + start);
         }
 
-        int n = graph.size();
-        boolean[] visited = new boolean[n];
-        int[] order = new int[n];
-        int orderSize = 0;
+        List<V> visitedOrder = new ArrayList<>();
+        java.util.Set<V> visited = new java.util.HashSet<>();
 
-        IntStack stack = new IntStack(n);
-        stack.push(graph.indexOf(startId));
+        GenericStack<V> stack = new GenericStack<>(graph.vertexCount());
+        stack.push(start);
 
         while (!stack.isEmpty()) {
-            int current = stack.pop();
-            if (visited[current]) {
+            V current = stack.pop();
+            if (visited.contains(current)) {
                 continue;
             }
-            visited[current] = true;
-            order[orderSize++] = current;
+            visited.add(current);
+            visitedOrder.add(current);
 
             // Push neighbours; since this is a stack, pushing in adjacency-list
             // order and popping reverses it. That is fine for a valid DFS order
             // (any order that respects "go deep before backtracking" is valid).
-            Graph.Edge edge = graph.neighborsOf(current);
-            while (edge != null) {
-                if (!visited[edge.to]) {
-                    stack.push(edge.to);
+            for (Edge<V> edge : graph.getEdgesFrom(current)) {
+                V neighbor = edge.getTo();
+                if (!visited.contains(neighbor)) {
+                    stack.push(neighbor);
                 }
-                edge = edge.next;
             }
         }
 
-        String[] result = new String[orderSize];
-        for (int i = 0; i < orderSize; i++) {
-            result[i] = graph.idOf(order[i]);
-        }
-        return result;
+        return visitedOrder;
     }
 
-    /** Returns true if {@code targetId} is reachable from {@code startId}. */
-    public static boolean isReachable(Graph graph, String startId, String targetId) {
-        if (!graph.containsVertex(targetId)) {
-            throw new NoSuchElementException("Unknown vertex: " + targetId);
+    /** Returns true if {@code target} is reachable from {@code start}. */
+    public static <V> boolean isReachable(Graph<V> graph, V start, V target) {
+        if (!graph.containsVertex(target)) {
+            throw new NoSuchElementException("Unknown vertex: " + target);
         }
-        for (String visited : traverse(graph, startId)) {
-            if (visited.equals(targetId)) {
-                return true;
-            }
-        }
-        return false;
+        return traverse(graph, start).contains(target);
     }
 
     /**
@@ -126,15 +124,15 @@ public final class DFS {
      * vertex is reachable from an arbitrary starting vertex. An empty graph
      * is trivially connected; a single-vertex graph is always connected.
      */
-    public static boolean isConnected(Graph graph) {
+    public static <V> boolean isConnected(Graph<V> graph) {
         if (graph == null) {
             throw new IllegalArgumentException("Graph must not be null");
         }
-        if (graph.size() <= 1) {
+        if (graph.vertexCount() <= 1) {
             return true;
         }
-        String startId = graph.vertexIds()[0];
-        String[] reached = traverse(graph, startId);
-        return reached.length == graph.size();
+        V start = graph.getVertices().iterator().next();
+        List<V> reached = traverse(graph, start);
+        return reached.size() == graph.vertexCount();
     }
 }

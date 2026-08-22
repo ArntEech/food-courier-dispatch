@@ -1,7 +1,10 @@
 package com.foodcourier.algorithms.graph;
 
+import com.foodcourier.dsa.graph.Edge;
 import com.foodcourier.dsa.graph.Graph;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -11,12 +14,19 @@ import java.util.NoSuchElementException;
  * fewest-hops route between two locations, or to confirm that every
  * location in the network is reachable (connectivity check).
  *
- * Implemented with a small hand-rolled circular array queue rather than
+ * Implemented with a small hand-rolled linked-node queue rather than
  * java.util.Queue, consistent with the project's "custom data structure"
  * requirement for assessed components.
  *
  * Time complexity:  O(V + E)
  * Space complexity: O(V)
+ *
+ * NOTE: uses java.util.HashSet/HashMap for visited-tracking, since Graph<V>
+ * is generic (no index mapping to drive array-based visited[] the way an
+ * int-ID graph would). This matches the same pattern Dijkstra.java already
+ * uses (java.util.Map for its distance table) — worth flagging to the team
+ * if a stricter "no built-in collections" reading is wanted, since it'd
+ * mean revisiting Dijkstra too, not just this file.
  */
 public final class BFS {
 
@@ -24,135 +34,124 @@ public final class BFS {
         // static utility class
     }
 
-    /** Minimal growable circular-array queue used purely to drive the BFS frontier. */
-    private static final class IntQueue {
-        private int[] data;
-        private int head;
-        private int tail;
-        private int count;
-
-        IntQueue(int capacity) {
-            data = new int[Math.max(capacity, 4)];
-            head = 0;
-            tail = 0;
-            count = 0;
+    /** Minimal singly-linked queue used purely to drive the BFS frontier. */
+    private static final class NodeQueue<T> {
+        private static final class Node<T> {
+            final T value;
+            Node<T> next;
+            Node(T value) { this.value = value; }
         }
+
+        private Node<T> head;
+        private Node<T> tail;
 
         boolean isEmpty() {
-            return count == 0;
+            return head == null;
         }
 
-        void enqueue(int value) {
-            if (count == data.length) {
-                grow();
+        void enqueue(T value) {
+            Node<T> node = new Node<>(value);
+            if (tail == null) {
+                head = node;
+                tail = node;
+            } else {
+                tail.next = node;
+                tail = node;
             }
-            data[tail] = value;
-            tail = (tail + 1) % data.length;
-            count++;
         }
 
-        int dequeue() {
+        T dequeue() {
             if (isEmpty()) {
                 throw new NoSuchElementException("Queue is empty");
             }
-            int value = data[head];
-            head = (head + 1) % data.length;
-            count--;
-            return value;
-        }
-
-        private void grow() {
-            int[] newData = new int[data.length * 2];
-            for (int i = 0; i < count; i++) {
-                newData[i] = data[(head + i) % data.length];
+            T value = head.value;
+            head = head.next;
+            if (head == null) {
+                tail = null;
             }
-            data = newData;
-            head = 0;
-            tail = count;
+            return value;
         }
     }
 
     /**
-     * Traverses the graph breadth-first starting from {@code startId}.
+     * Traverses the graph breadth-first starting from {@code start}.
      *
-     * @return the visited vertex ids, in the order they were discovered.
+     * @return the visited vertices, in the order they were discovered.
      */
-    public static String[] traverse(Graph graph, String startId) {
+    public static <V> List<V> traverse(Graph<V> graph, V start) {
         if (graph == null) {
             throw new IllegalArgumentException("Graph must not be null");
         }
-        if (!graph.containsVertex(startId)) {
-            throw new NoSuchElementException("Unknown start vertex: " + startId);
+        if (!graph.containsVertex(start)) {
+            throw new NoSuchElementException("Unknown start vertex: " + start);
         }
 
-        int n = graph.size();
-        boolean[] visited = new boolean[n];
-        int[] order = new int[n];
-        int orderSize = 0;
+        List<V> visitedOrder = new ArrayList<>();
+        java.util.Set<V> visited = new java.util.HashSet<>();
 
-        IntQueue queue = new IntQueue(n);
-        int startIndex = graph.indexOf(startId);
-        visited[startIndex] = true;
-        queue.enqueue(startIndex);
+        NodeQueue<V> queue = new NodeQueue<>();
+        visited.add(start);
+        queue.enqueue(start);
 
         while (!queue.isEmpty()) {
-            int current = queue.dequeue();
-            order[orderSize++] = current;
+            V current = queue.dequeue();
+            visitedOrder.add(current);
 
-            Graph.Edge edge = graph.neighborsOf(current);
-            while (edge != null) {
-                if (!visited[edge.to]) {
-                    visited[edge.to] = true;
-                    queue.enqueue(edge.to);
+            for (Edge<V> edge : graph.getEdgesFrom(current)) {
+                V neighbor = edge.getTo();
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    queue.enqueue(neighbor);
                 }
-                edge = edge.next;
             }
         }
 
-        String[] result = new String[orderSize];
-        for (int i = 0; i < orderSize; i++) {
-            result[i] = graph.idOf(order[i]);
-        }
-        return result;
+        return visitedOrder;
     }
 
     /**
      * Returns the length, in edges, of the shortest path (fewest hops) between
-     * {@code startId} and {@code targetId}, or -1 if no path exists.
+     * {@code start} and {@code target}, or -1 if no path exists.
      */
-    public static int shortestHopDistance(Graph graph, String startId, String targetId) {
-        if (!graph.containsVertex(startId) || !graph.containsVertex(targetId)) {
+    public static <V> int shortestHopDistance(Graph<V> graph, V start, V target) {
+        if (!graph.containsVertex(start) || !graph.containsVertex(target)) {
             throw new NoSuchElementException("Unknown vertex in graph");
         }
 
-        int n = graph.size();
-        boolean[] visited = new boolean[n];
-        int[] distance = new int[n];
-        IntQueue queue = new IntQueue(n);
+        java.util.Map<V, Integer> distance = new java.util.HashMap<>();
+        java.util.Set<V> visited = new java.util.HashSet<>();
+        NodeQueue<V> queue = new NodeQueue<>();
 
-        int startIndex = graph.indexOf(startId);
-        int targetIndex = graph.indexOf(targetId);
-
-        visited[startIndex] = true;
-        distance[startIndex] = 0;
-        queue.enqueue(startIndex);
+        visited.add(start);
+        distance.put(start, 0);
+        queue.enqueue(start);
 
         while (!queue.isEmpty()) {
-            int current = queue.dequeue();
-            if (current == targetIndex) {
-                return distance[current];
+            V current = queue.dequeue();
+            if (current.equals(target)) {
+                return distance.get(current);
             }
-            Graph.Edge edge = graph.neighborsOf(current);
-            while (edge != null) {
-                if (!visited[edge.to]) {
-                    visited[edge.to] = true;
-                    distance[edge.to] = distance[current] + 1;
-                    queue.enqueue(edge.to);
+            for (Edge<V> edge : graph.getEdgesFrom(current)) {
+                V neighbor = edge.getTo();
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    distance.put(neighbor, distance.get(current) + 1);
+                    queue.enqueue(neighbor);
                 }
-                edge = edge.next;
             }
         }
         return -1;
+    }
+
+    /**
+     * True if {@code target} is reachable from {@code start}. Used by
+     * RouteNavigationService as a pre-check before attempting to route.
+     */
+    public static <V> boolean isReachable(Graph<V> graph, V start, V target) {
+        if (!graph.containsVertex(target)) {
+            throw new NoSuchElementException("Unknown vertex: " + target);
+        }
+        return traverse(graph, start).contains(target);
     }
 
     /**
@@ -160,15 +159,15 @@ public final class BFS {
      * vertex is reachable from an arbitrary starting vertex. An empty graph
      * is trivially connected; a single-vertex graph is always connected.
      */
-    public static boolean isConnected(Graph graph) {
+    public static <V> boolean isConnected(Graph<V> graph) {
         if (graph == null) {
             throw new IllegalArgumentException("Graph must not be null");
         }
-        if (graph.size() <= 1) {
+        if (graph.vertexCount() <= 1) {
             return true;
         }
-        String startId = graph.vertexIds()[0];
-        String[] reached = traverse(graph, startId);
-        return reached.length == graph.size();
+        V start = graph.getVertices().iterator().next();
+        List<V> reached = traverse(graph, start);
+        return reached.size() == graph.vertexCount();
     }
 }
