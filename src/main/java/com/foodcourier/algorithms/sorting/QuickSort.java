@@ -1,58 +1,47 @@
 package com.foodcourier.algorithms.sorting;
 
-import java.util.Comparator;
+import java.util.List;
 
-/**
- * PLACEHOLDER.
- *
- * This is a stand-in QuickSort with the same method signatures as
- * {@link MergeSort}, written only so {@link SortBenchmark} compiles and
- * produces a first set of numbers. Delete this file and replace it with
- * Issabella's actual {@code QuickSort.java} once she pushes it — as long as
- * her class exposes the same two static {@code sort(...)} methods used
- * below, the benchmark needs no other changes.
- */
-public final class QuickSort {
+import com.foodcourier.domain.Order;
 
-    private QuickSort() {
-    }
+public class QuickSort {
 
-    public static <T extends Comparable<T>> void sort(T[] array) {
-        sort(array, Comparator.naturalOrder());
-    }
-
-    public static <T> void sort(T[] array, Comparator<T> comparator) {
-        if (array == null || array.length < 2 || comparator == null) {
+    /**
+     * Sorts a list of orders in-place by timestamp in ascending order.
+     */
+    public static void sort(List<Order> orders) {
+        if (orders == null || orders.size() <= 1) {
             return;
         }
-        quickSort(array, 0, array.length - 1, comparator);
+        quickSort(orders, 0, orders.size() - 1);
     }
 
-    private static <T> void quickSort(T[] array, int low, int high, Comparator<T> comparator) {
-        if (low >= high) {
-            return;
+    private static void quickSort(List<Order> orders, int low, int high) {
+        if (low < high) {
+            int pivotIndex = partition(orders, low, high);
+            quickSort(orders, low, pivotIndex - 1);
+            quickSort(orders, pivotIndex + 1, high);
         }
-        int pivotIndex = partition(array, low, high, comparator);
-        quickSort(array, low, pivotIndex - 1, comparator);
-        quickSort(array, pivotIndex + 1, high, comparator);
     }
 
-    private static <T> int partition(T[] array, int low, int high, Comparator<T> comparator) {
-        T pivot = array[high];
+    private static int partition(List<Order> orders, int low, int high) {
+        Order pivot = orders.get(high);
         int i = low - 1;
+
         for (int j = low; j < high; j++) {
-            if (comparator.compare(array[j], pivot) <= 0) {
+                if (((Comparable<Object>) orders.get(j).getTimestamp())
+                    .compareTo(pivot.getTimestamp()) <= 0) {
                 i++;
-                swap(array, i, j);
+                swap(orders, i, j);
             }
         }
-        swap(array, i + 1, high);
+        swap(orders, i + 1, high);
         return i + 1;
     }
 
-    private static <T> void swap(T[] array, int a, int b) {
-        T temp = array[a];
-        array[a] = array[b];
-        array[b] = temp;
+    private static void swap(List<Order> orders, int i, int j) {
+        Order temp = orders.get(i);
+        orders.set(i, orders.get(j));
+        orders.set(j, temp);
     }
 }
