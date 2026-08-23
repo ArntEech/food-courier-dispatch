@@ -1,25 +1,25 @@
 package com.foodcourier.alpha1;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import com.foodcourier.algorithms.searching.LinearSearch;
 import com.foodcourier.domain.Customer;
-import com.foodcourier.domain.OrderStatus;
 import com.foodcourier.domain.Order;
+import com.foodcourier.domain.OrderStatus;
 import com.foodcourier.domain.Priority;
 import com.foodcourier.domain.Restaurant;
 
 /**
- * Handles intake of incoming orders and hands them off to the
- * order-processing pipeline.
+ * Handles intake of incoming orders and hands them off to the order-processing
+ * pipeline.
  */
 public class OrderIntakeService {
 
@@ -45,7 +45,9 @@ public class OrderIntakeService {
         return orderQueue.poll();
     }
 
-    /** Loads orders into the queue in the order supplied by the seed file. */
+    /**
+     * Loads orders into the queue in the order supplied by the seed file.
+     */
     public void loadSeedData(List<Order> orders) {
         if (orders == null || orders.isEmpty()) {
             return;
@@ -54,7 +56,9 @@ public class OrderIntakeService {
         orderQueue.addAll(orders);
     }
 
-    /** Loads the order rows from a CSV seed file into the FIFO queue. */
+    /**
+     * Loads the order rows from a CSV seed file into the FIFO queue.
+     */
     public void loadSeedData(Path csvPath) throws IOException {
         List<Order> orders = new ArrayList<>();
         try (Stream<String> lines = Files.lines(csvPath)) {
