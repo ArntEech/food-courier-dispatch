@@ -1,17 +1,16 @@
 package com.foodcourier.alpha5;
 
 import com.foodcourier.domain.*;
-
-// swap in the real sort once it exists:
-// import com.foodcourier.algorithms.sorting.QuickSort;
-// import com.foodcourier.algorithms.sorting.MergeSort;
-// checked Issabella's branch directly (food-courier-dispatch-Issabella-b) —
-// QuickSort.java is still just an empty class, nothing to call yet.
+// this is Asare's MergeSort (kelvin-b / feature/mergesort-benchmark branch).
+// it's not merged into alpha5 yet, so this won't compile here until it lands —
+// see the team message about that.
+import com.foodcourier.algorithms.sorting.MergeSort;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,19 +20,19 @@ public class DeliveryOptimizationService {
     // reads data/generated/dummy1.csv and turns each row into a Delivery.
     // header: deliveryId,courierId,courierName,distanceKm,estimatedTimeMinutes
     //
-    // Delivery's constructor won't let you skip the Order, but generateReport()
-    // never actually looks inside it, so each row just gets a bare placeholder
-    // Order to keep the domain model happy.
+    // Delivery won't let you skip the Order in its constructor, but
+    // generateReport() never actually looks inside it, so each row just
+    // gets a bare placeholder Order to keep the compiler happy.
     //
-    // right now dummy1.csv is empty, so this just returns an empty list until
-    // it's populated — that's expected, not a bug.
+    // right now dummy1.csv is empty so this just returns nothing until
+    // someone actually puts rows in it.
     public List<Delivery> loadFromCsv(String csvPath) throws IOException {
         List<Delivery> deliveries = new ArrayList<>();
 
         try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
             String header = reader.readLine();
             if (header == null) {
-                return deliveries; // file's empty, nothing to load
+                return deliveries; // empty file, nothing to load
             }
 
             String line;
@@ -49,8 +48,8 @@ public class DeliveryOptimizationService {
 
                 Courier courier = new Courier(courierId, courierName, "", CourierStatus.AVAILABLE, null);
 
-                // placeholder order — not used by generateReport(), just here
-                // because Delivery requires one
+                // dummy order, just to satisfy the constructor - generateReport()
+                // doesn't touch anything inside it
                 Order placeholderOrder = new Order(
                         deliveryId + "-order", null, null, 0.0, Priority.MEDIUM, OrderStatus.DELIVERED);
 
@@ -63,8 +62,8 @@ public class DeliveryOptimizationService {
         return deliveries;
     }
 
-    // takes the raw Delivery records and spits out avg time, total distance,
-    // and orders-per-courier, then ranks couriers by how many orders they've done.
+    // grabs avg delivery time, total distance, and orders per courier out of
+    // the Delivery records, then ranks couriers by how busy they were.
     public String generateReport(List<Delivery> deliveries) {
         if (deliveries == null || deliveries.isEmpty()) {
             return "No delivery records available to report on.";
@@ -78,8 +77,8 @@ public class DeliveryOptimizationService {
             totalDistance += d.getDistance();
             totalTime += d.getEstimatedTimeMinutes();
 
-            // a delivery can exist without an assigned courier yet, so don't
-            // assume getCourier() is non-null
+            // courier can be null if a delivery hasn't been assigned yet, so
+            // handle that instead of just assuming it's always set
             Courier courier = d.getCourier();
             String courierId = (courier != null) ? courier.getId() : "UNASSIGNED";
             String courierName = (courier != null) ? courier.getName() : "Unassigned";
@@ -93,12 +92,9 @@ public class DeliveryOptimizationService {
 
         List<CourierStats> rows = new ArrayList<>(courierRows.values());
 
-        // this is the "reuse the existing sort" part of the task. right now
-        // there IS no existing sort (see import comment above), so this line
-        // is a stand-in — rows.sort(null) just falls back to CourierStats's
-        // own compareTo. once QuickSort or MergeSort actually has a body,
-        // replace this one line with the real call.
-        rows.sort(null);
+        // ranking couriers by order count, busiest first - using Asare's
+        // MergeSort here instead of writing another sort from scratch
+        MergeSort.sort(rows, Comparator.comparingInt((CourierStats c) -> c.orderCount).reversed());
 
         StringBuilder sb = new StringBuilder();
         sb.append("=== Delivery Optimization Report ===\n\n");
@@ -116,9 +112,9 @@ public class DeliveryOptimizationService {
         return sb.toString();
     }
 
-    // one row per courier, built up from their Delivery records. this is
-    // what actually gets sorted — grouping first is what makes "rank
-    // couriers" mean something.
+    // one row per courier, tallied up from their deliveries. we sort a list
+    // of these instead of raw Deliveries, since "rank couriers" only makes
+    // sense once each one's orders are grouped together
     private static class CourierStats implements Comparable<CourierStats> {
 
         private final String courierId;
