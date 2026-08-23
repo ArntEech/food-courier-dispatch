@@ -1,9 +1,7 @@
 package com.foodcourier.alpha5;
 
 import com.foodcourier.domain.*;
-// this is Asare's MergeSort (kelvin-b / feature/mergesort-benchmark branch).
-// it's not merged into alpha5 yet, so this won't compile here until it lands —
-// see the team message about that.
+
 import com.foodcourier.algorithms.sorting.MergeSort;
 
 import java.io.BufferedReader;
@@ -19,13 +17,8 @@ public class DeliveryOptimizationService {
 
     // reads data/generated/dummy1.csv and turns each row into a Delivery.
     // header: deliveryId,courierId,courierName,distanceKm,estimatedTimeMinutes
-    //
-    // Delivery won't let you skip the Order in its constructor, but
-    // generateReport() never actually looks inside it, so each row just
-    // gets a bare placeholder Order to keep the compiler happy.
-    //
-    // right now dummy1.csv is empty so this just returns nothing until
-    // someone actually puts rows in it.
+    
+
     public List<Delivery> loadFromCsv(String csvPath) throws IOException {
         List<Delivery> deliveries = new ArrayList<>();
 
@@ -48,8 +41,7 @@ public class DeliveryOptimizationService {
 
                 Courier courier = new Courier(courierId, courierName, "", CourierStatus.AVAILABLE, null);
 
-                // dummy order, just to satisfy the constructor - generateReport()
-                // doesn't touch anything inside it
+                
                 Order placeholderOrder = new Order(
                         deliveryId + "-order", null, null, 0.0, Priority.MEDIUM, OrderStatus.DELIVERED);
 
@@ -62,8 +54,6 @@ public class DeliveryOptimizationService {
         return deliveries;
     }
 
-    // grabs avg delivery time, total distance, and orders per courier out of
-    // the Delivery records, then ranks couriers by how busy they were.
     public String generateReport(List<Delivery> deliveries) {
         if (deliveries == null || deliveries.isEmpty()) {
             return "No delivery records available to report on.";
@@ -77,8 +67,7 @@ public class DeliveryOptimizationService {
             totalDistance += d.getDistance();
             totalTime += d.getEstimatedTimeMinutes();
 
-            // courier can be null if a delivery hasn't been assigned yet, so
-            // handle that instead of just assuming it's always set
+        
             Courier courier = d.getCourier();
             String courierId = (courier != null) ? courier.getId() : "UNASSIGNED";
             String courierName = (courier != null) ? courier.getName() : "Unassigned";
