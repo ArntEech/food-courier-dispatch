@@ -7,18 +7,18 @@ import com.foodcourier.domain.Order;
 
 public class LinearSearch {
 
-    public static Optional<Order> searchById(List<Order> activeOrders, String orderId) {
-        if (activeOrders == null || orderId == null) {
-            return Optional.empty();
-        }
-
-        for (Order order : activeOrders) {
-            if (order != null && orderId.equals(order.getId())) {
-                return Optional.of(order);
-            }
-        }
-
-        return Optional.empty();
+  public static Optional<Order> searchById(List<Order> activeOrders, String orderId) {
+    if (activeOrders == null || orderId == null) {
+      return Optional.empty();
     }
-    
+
+    for (Order order : activeOrders) {
+      if (order != null && orderId.equals(order.getId())) {
+        return Optional.of(order);
+      }
+    }
+
+    return Optional.empty();
+  }
+
 }
