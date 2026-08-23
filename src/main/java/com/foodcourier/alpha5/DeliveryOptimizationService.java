@@ -1,114 +1,138 @@
-package alpha5;
+package com.foodcourier.alpha5;
 
-import com.foodcourier.algorithms.optimization.DynamicProgramming;
-import com.foodcourier.algorithms.optimization.DynamicProgramming.BatchResult;
-import com.foodcourier.algorithms.optimization.DynamicProgramming.Order;
+import com.foodcourier.domain.*;
 
+import com.foodcourier.algorithms.sorting.MergeSort;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Stub service for delivery route optimization.
- * Real logic (DP knapsack batching) lives in DynamicProgramming; this class
- * is the integration point Kofi's code depends on.
- *
- * TODO(Francis): implement optimize() and generateReport() below.
- */
 public class DeliveryOptimizationService {
 
-    /** A single delivery/order to be assigned to a courier. */
-    public static class Delivery {
-        public final String id;
-        public final int weight;              // capacity units (bag/volume slots)
-        public final int priority;             // value/priority score
-        public final int estimatedTimeMinutes; // prep + travel estimate
+    // reads data/generated/dummy1.csv and turns each row into a Delivery.
+    // header: deliveryId,courierId,courierName,distanceKm,estimatedTimeMinutes
+    
 
-        public Delivery(String id, int weight, int priority, int estimatedTimeMinutes) {
-            this.id = id;
-            this.weight = weight;
-            this.priority = priority;
-            this.estimatedTimeMinutes = estimatedTimeMinutes;
-        }
-    }
+    public List<Delivery> loadFromCsv(String csvPath) throws IOException {
+        List<Delivery> deliveries = new ArrayList<>();
 
-    /** A courier available to take on a batch of deliveries. */
-    public static class Courier {
-        public final String id;
-        public final int capacity;       // max bag/volume capacity
-        public final int maxTimeMinutes; // time budget before shift/window ends
+        try (BufferedReader reader = new BufferedReader(new FileReader(csvPath))) {
+            String header = reader.readLine();
+            if (header == null) {
+                return deliveries; // empty file, nothing to load
+            }
 
-        public Courier(String id, int capacity, int maxTimeMinutes) {
-            this.id = id;
-            this.capacity = capacity;
-            this.maxTimeMinutes = maxTimeMinutes;
-        }
-    }
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+                String[] parts = line.split(",");
 
-    /** A candidate route: an ordered set of deliveries to be optimized against couriers. */
-    public static class Route {
-        public final String routeId;
-        public final List<Delivery> deliveries;
+                String deliveryId = parts[0].trim();
+                String courierId = parts[1].trim();
+                String courierName = parts[2].trim();
+                double distanceKm = Double.parseDouble(parts[3].trim());
+                int estimatedTimeMinutes = Integer.parseInt(parts[4].trim());
 
-        public Route(String routeId, List<Delivery> deliveries) {
-            this.routeId = routeId;
-            this.deliveries = deliveries;
-        }
-    }
+                Courier courier = new Courier(courierId, courierName, "", CourierStatus.AVAILABLE, null);
 
-    /** Result returned by optimize(): which deliveries got assigned, and to what value. */
-    public static class OptimizationResult {
-        public final String courierId;
-        public final List<Delivery> assignedDeliveries;
-        public final int totalValue;
-        public final int totalWeight;
+                
+                Order placeholderOrder = new Order(
+                        deliveryId + "-order", null, null, 0.0, Priority.MEDIUM, OrderStatus.DELIVERED);
 
-        public OptimizationResult(String courierId, List<Delivery> assignedDeliveries,
-                                   int totalValue, int totalWeight) {
-            this.courierId = courierId;
-            this.assignedDeliveries = assignedDeliveries;
-            this.totalValue = totalValue;
-            this.totalWeight = totalWeight;
-        }
-    }
-
-    /**
-     * Assign the best subset of a route's deliveries to a courier, respecting
-     * that courier's capacity and time budget.
-     *
-     * TODO(Francis): for now this only optimizes against the FIRST courier in
-     * the list. Extend to multi-courier assignment (e.g. iterate couriers,
-     * removing assigned deliveries from the pool each round) once the team
-     * agrees on the multi-courier allocation strategy.
-     */
-    public OptimizationResult optimize(Route route, List<Courier> couriers) {
-        if (route == null || route.deliveries == null || route.deliveries.isEmpty()
-                || couriers == null || couriers.isEmpty()) {
-            return new OptimizationResult(null, List.of(), 0, 0);
+                Delivery delivery = new Delivery(deliveryId, placeholderOrder, distanceKm, estimatedTimeMinutes);
+                delivery.setCourier(courier);
+                deliveries.add(delivery);
+            }
         }
 
-        Courier courier = couriers.get(0);
-
-        List<Order> orders = route.deliveries.stream()
-                .map(d -> new Order(d.id, d.weight, d.priority, d.estimatedTimeMinutes))
-                .toList();
-
-        BatchResult batch = DynamicProgramming.optimizeBatchWithTimeConstraint(
-                orders, courier.capacity, courier.maxTimeMinutes);
-
-        List<Delivery> assigned = route.deliveries.stream()
-                .filter(d -> batch.selectedOrders.stream().anyMatch(o -> o.id.equals(d.id)))
-                .toList();
-
-        return new OptimizationResult(courier.id, assigned, batch.totalValue, batch.totalWeight);
+        return deliveries;
     }
 
-    /**
-     * Produce a human-readable summary report for a batch of deliveries.
-     *
-     * TODO(Francis): decide on final report format with the team (plain text
-     * vs JSON vs the shared reporting template) before implementing.
-     */
     public String generateReport(List<Delivery> deliveries) {
-        throw new UnsupportedOperationException(
-                "TODO: implement generateReport() - summarize totals, capacity utilization, unassigned orders");
+        if (deliveries == null || deliveries.isEmpty()) {
+            return "No delivery records available to report on.";
+        }
+
+        double totalDistance = 0;
+        double totalTime = 0;
+        Map<String, CourierStats> courierRows = new HashMap<>();
+
+        for (Delivery d : deliveries) {
+            totalDistance += d.getDistance();
+            totalTime += d.getEstimatedTimeMinutes();
+
+        
+            Courier courier = d.getCourier();
+            String courierId = (courier != null) ? courier.getId() : "UNASSIGNED";
+            String courierName = (courier != null) ? courier.getName() : "Unassigned";
+
+            courierRows
+                .computeIfAbsent(courierId, id -> new CourierStats(courierId, courierName))
+                .addDelivery(d);
+        }
+
+        double avgTime = totalTime / deliveries.size();
+
+        List<CourierStats> rows = new ArrayList<>(courierRows.values());
+
+        // ranking couriers by order count, busiest first - using Asare's
+        // MergeSort here instead of writing another sort from scratch
+        MergeSort.sort(rows, Comparator.comparingInt((CourierStats c) -> c.orderCount).reversed());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Delivery Optimization Report ===\n\n");
+        sb.append(String.format("Total deliveries: %d%n", deliveries.size()));
+        sb.append(String.format("Average delivery time: %.2f minutes%n", avgTime));
+        sb.append(String.format("Total distance covered: %.2f km%n%n", totalDistance));
+        sb.append("Couriers ranked by order volume:\n");
+        sb.append(String.format("%-12s | %-15s | %-8s | %-15s | %-12s%n",
+                "Courier ID", "Name", "Orders", "Distance (km)", "Time (min)"));
+        sb.append("-".repeat(70)).append("\n");
+        for (CourierStats row : rows) {
+            sb.append(row).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    // one row per courier, tallied up from their deliveries. we sort a list
+    // of these instead of raw Deliveries, since "rank couriers" only makes
+    // sense once each one's orders are grouped together
+    private static class CourierStats implements Comparable<CourierStats> {
+
+        private final String courierId;
+        private final String courierName;
+        private int orderCount;
+        private double totalDistance;
+        private double totalTimeMinutes;
+
+        CourierStats(String courierId, String courierName) {
+            this.courierId = courierId;
+            this.courierName = courierName;
+        }
+
+        void addDelivery(Delivery delivery) {
+            orderCount++;
+            totalDistance += delivery.getDistance();
+            totalTimeMinutes += delivery.getEstimatedTimeMinutes();
+        }
+
+        // busiest courier first
+        @Override
+        public int compareTo(CourierStats other) {
+            return Integer.compare(other.orderCount, this.orderCount);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%-12s | %-15s | %-8d | %-15.2f | %-12.1f",
+                    courierId, courierName, orderCount, totalDistance, totalTimeMinutes);
+        }
     }
 }
