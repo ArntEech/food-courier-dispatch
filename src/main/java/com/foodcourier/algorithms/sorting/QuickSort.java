@@ -29,14 +29,23 @@ public class QuickSort {
         int i = low - 1;
 
         for (int j = low; j < high; j++) {
-                if (((Comparable<Object>) orders.get(j).getTimestamp())
-                    .compareTo(pivot.getTimestamp()) <= 0) {
+            if (compareTimestamps(orders.get(j), pivot) <= 0) {
                 i++;
                 swap(orders, i, j);
             }
         }
         swap(orders, i + 1, high);
         return i + 1;
+    }
+
+    private static int compareTimestamps(Order first, Order second) {
+        if (first.getTimestamp() == null) {
+            return second.getTimestamp() == null ? 0 : 1;
+        }
+        if (second.getTimestamp() == null) {
+            return -1;
+        }
+        return first.getTimestamp().compareTo(second.getTimestamp());
     }
 
     private static void swap(List<Order> orders, int i, int j) {

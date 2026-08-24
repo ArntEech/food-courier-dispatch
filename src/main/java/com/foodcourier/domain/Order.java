@@ -1,5 +1,7 @@
 package com.foodcourier.domain;
 
+import java.time.LocalDateTime;
+
 public class Order {
 
     private final String id;
@@ -8,6 +10,7 @@ public class Order {
 
     private final double value;
     private final Priority priority;
+    private final LocalDateTime timestamp;
 
     private OrderStatus status;
 
@@ -19,12 +22,25 @@ public class Order {
             Priority priority,
             OrderStatus status
     ) {
+        this(id, customer, restaurant, value, priority, status, null);
+    }
+
+    public Order(
+            String id,
+            Customer customer,
+            Restaurant restaurant,
+            double value,
+            Priority priority,
+            OrderStatus status,
+            LocalDateTime timestamp
+    ) {
         this.id = id;
         this.customer = customer;
         this.restaurant = restaurant;
         this.value = value;
         this.priority = priority;
         this.status = status;
+        this.timestamp = timestamp;
     }
 
     public String getId() {
@@ -64,8 +80,7 @@ public class Order {
                 '}';
     }
 
-    public Object getTimestamp() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getTimestamp'");
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 }

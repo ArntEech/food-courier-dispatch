@@ -1,18 +1,16 @@
 package com.foodcourier.dsa.list;
 
-public interface ListInterface<E> {
+public interface ListInterface<T> {
 
-    int size();
+    void add(T item);
+
+    void add(int index, T item);
+
+    T get(int index);
+
+    T remove(int index);
 
     boolean isEmpty();
 
-    E get(int index);
-
-    void addFirst(E item);
-
-    void addLast(E item);
-
-    E removeFirst();
-
-    E removeLast();
+    int size();
 }
