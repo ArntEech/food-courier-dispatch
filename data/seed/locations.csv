@@ -1,0 +1,9 @@
+location_id,name,latitude,longitude,location_type
+1,UG Main Gate,5.6508,-0.1869,CAMPUS
+2,Legon Hall,5.6536,-0.1870,CAMPUS
+3,Commonwealth Hall,5.6548,-0.1882,CAMPUS
+4,Akuafo Hall,5.6552,-0.1849,CAMPUS
+5,University Hospital,5.6558,-0.1828,CAMPUS
+6,Okponglo,5.6387,-0.1862,ROAD
+7,Atomic Junction,5.6682,-0.1741,ROAD
+8,UG Business School,5.6500,-0.1850,CAMPUS
