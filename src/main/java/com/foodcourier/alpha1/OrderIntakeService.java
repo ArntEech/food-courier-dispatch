@@ -3,19 +3,20 @@ package com.foodcourier.alpha1;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.stream.Stream;
 
 import com.foodcourier.algorithms.searching.LinearSearch;
+import com.foodcourier.algorithms.sorting.QuickSort;
 import com.foodcourier.domain.Customer;
 import com.foodcourier.domain.Order;
 import com.foodcourier.domain.OrderStatus;
 import com.foodcourier.domain.Priority;
 import com.foodcourier.domain.Restaurant;
+import com.foodcourier.dsa.queue.ArrayQueue;
 
 /**
  * Handles intake of incoming orders and hands them off to the order-processing
@@ -23,7 +24,7 @@ import com.foodcourier.domain.Restaurant;
  */
 public class OrderIntakeService {
 
-    private final Queue<Order> orderQueue = new ArrayDeque<>();
+    private final ArrayQueue<Order> orderQueue = new ArrayQueue<>();
 
     /**
      * Receives a new order into the intake pipeline.
@@ -32,7 +33,7 @@ public class OrderIntakeService {
      */
     public void receiveOrder(Order order) {
         if (order != null) {
-            orderQueue.add(order);
+            orderQueue.enqueue(order);
         }
     }
 
@@ -42,18 +43,19 @@ public class OrderIntakeService {
      * @return the next order in line, or null if the queue is empty
      */
     public Order getNextOrder() {
-        return orderQueue.poll();
+        return orderQueue.isEmpty() ? null : orderQueue.dequeue();
     }
 
     /**
      * Loads orders into the queue in the order supplied by the seed file.
      */
     public void loadSeedData(List<Order> orders) {
-        if (orders == null || orders.isEmpty()) {
-            return;
-        }
         orderQueue.clear();
-        orderQueue.addAll(orders);
+        if (orders != null) {
+            for (Order order : orders) {
+                receiveOrder(order);
+            }
+        }
     }
 
     /**
@@ -86,7 +88,8 @@ public class OrderIntakeService {
                 restaurant,
                 0.0,
                 parsePriority(columns[4].trim()),
-                OrderStatus.valueOf(columns[5].trim().toUpperCase())
+                OrderStatus.valueOf(columns[5].trim().toUpperCase()),
+                LocalDateTime.parse(columns[3].trim())
         );
     }
 
@@ -107,8 +110,13 @@ public class OrderIntakeService {
      * @return Optional containing the order if found
      */
     public Optional<Order> findOrderById(String orderId) {
-        List<Order> activeOrders = new ArrayList<>(orderQueue);
-        return LinearSearch.searchById(activeOrders, orderId);
+        return LinearSearch.searchById(orderQueue.toList(), orderId);
+    }
+
+    public List<Order> getOrdersSortedByTimestamp() {
+        List<Order> orders = new ArrayList<>(orderQueue.toList());
+        QuickSort.sort(orders);
+        return orders;
     }
 
     public int getQueueSize() {

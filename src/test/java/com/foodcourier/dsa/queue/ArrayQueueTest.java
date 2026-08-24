@@ -1,23 +1,23 @@
 package com.foodcourier.dsa.queue;
 
-import dsa.queue.ArrayQueue;
-import org.junit.jupiter.api.Test;
-
 import java.util.NoSuchElementException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ArrayQueueTest {
 
     private ArrayQueue<Integer> queue = new ArrayQueue<>();
 
-    @Test
+    @org.junit.jupiter.api.Test
     void newQueueIsEmpty() {
         assertTrue(queue.isEmpty());
         assertEquals(0, queue.size());
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void enqueueIncreasesSize() {
         queue.enqueue(1);
         queue.enqueue(2);
@@ -25,7 +25,7 @@ class ArrayQueueTest {
         assertFalse(queue.isEmpty());
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void dequeueReturnsItemsInFifoOrder() {
         queue.enqueue(1);
         queue.enqueue(2);
@@ -37,24 +37,24 @@ class ArrayQueueTest {
         assertTrue(queue.isEmpty());
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void peekDoesNotRemoveItem() {
         queue.enqueue(42);
         assertEquals(42, queue.peek());
         assertEquals(1, queue.size());
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void dequeueOnEmptyQueueThrows() {
-        assertEquals(NoSuchElementException.class, assertThrows(NoSuchElementException.class, () -> queue.dequeue()).getClass());
+        assertThrows(NoSuchElementException.class, () -> queue.dequeue());
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void peekOnEmptyQueueThrows() {
-        org.junit.jupiter.api.Assertions.assertThrows(NoSuchElementException.class, () -> queue.peek());
+        assertThrows(NoSuchElementException.class, () -> queue.peek());
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void queueGrowsBeyondInitialCapacity() {
         for (int i = 0; i < 100; i++) {
             queue.enqueue(i);
@@ -65,7 +65,7 @@ class ArrayQueueTest {
         }
     }
 
-    @Test
+    @org.junit.jupiter.api.Test
     void wrapAroundBehavesCorrectly() {
         ArrayQueue<Integer> small = new ArrayQueue<>(4);
         small.enqueue(1);
@@ -80,17 +80,5 @@ class ArrayQueueTest {
         assertEquals(4, small.dequeue());
         assertEquals(5, small.dequeue());
         assertTrue(small.isEmpty());
-    }
-
-    private void assertEquals(int i, Integer dequeue) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private void assertTrue(boolean empty) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private void assertFalse(boolean empty) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

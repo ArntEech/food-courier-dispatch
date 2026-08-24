@@ -4,6 +4,12 @@
  */
 package com.foodcourier.dsa.queue;
 
-interface QueueInterface<T> {
 
+public interface QueueInterface<T> {
+    void enqueue(T item);
+    T dequeue();
+    T peek();
+    boolean isEmpty();
+    int size();
 }
+

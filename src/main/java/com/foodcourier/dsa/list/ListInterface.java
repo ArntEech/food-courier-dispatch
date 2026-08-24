@@ -1,9 +1,16 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
- */
 package com.foodcourier.dsa.list;
 
-interface ListInterface<T> {
+public interface ListInterface<T> {
 
+    void add(T item);
+
+    void add(int index, T item);
+
+    T get(int index);
+
+    T remove(int index);
+
+    boolean isEmpty();
+
+    int size();
 }

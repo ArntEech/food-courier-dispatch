@@ -1,5 +1,7 @@
 package com.foodcourier.dsa.queue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class ArrayQueue<T> implements QueueInterface<T> {
@@ -58,6 +60,22 @@ public class ArrayQueue<T> implements QueueInterface<T> {
 
     public int size() {
         return size;
+    }
+
+    public List<T> toList() {
+        List<T> snapshot = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            @SuppressWarnings("unchecked")
+            T item = (T) elements[(front + i) % elements.length];
+            snapshot.add(item);
+        }
+        return snapshot;
+    }
+
+    public void clear() {
+        while (!isEmpty()) {
+            dequeue();
+        }
     }
 
     private void resize(int newCapacity) {

@@ -1,9 +1,9 @@
 package com.foodcourier.dsa.list;
 
-import dsa.list.SinglyLinkedList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class SinglyLinkedListTest {
 
@@ -126,22 +126,6 @@ public class SinglyLinkedListTest {
             sb.append(s);
         }
         assertEquals("abc", sb.toString());
-    }
-
-    private void assertEquals(String b, String get) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private void assertEquals(int i, int size) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private void assertTrue(boolean empty) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    private void fail(String expected_IndexOutOfBoundsException) {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
