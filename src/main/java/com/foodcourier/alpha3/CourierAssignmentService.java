@@ -9,12 +9,11 @@ import com.foodcourier.dsa.hashtable.HashMapTable;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 public class CourierAssignmentService {
 
     private final HashMapTable<String, Courier> courierById;
-    private final List<String> sortedCourierIds; // TODO: replace with BST.inOrder() once Maa Afia adds it
+    private final List<String> sortedCourierIds;
     private final List<Order> activeOrders;
 
     public CourierAssignmentService(HashMapTable<String, Courier> courierById,
@@ -30,8 +29,7 @@ public class CourierAssignmentService {
             return null;
         }
 
-        Optional<Order> activeMatch = LinearSearch.searchById(activeOrders, order.getId());
-        if (activeMatch.isEmpty()) {
+        if (LinearSearch.searchById(activeOrders, order.getId()).isEmpty()) {
             return null;
         }
 
