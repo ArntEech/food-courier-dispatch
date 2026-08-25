@@ -1,4 +1,4 @@
-package com.foodcourier.algorithms.optimization;
+package com.foodcourier.alpha5;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -43,7 +43,7 @@ public class Greedy {
      * Greedily selects orders for one courier based on
      * earliest deadline first.
      *
-     * @param orders   candidate orders
+     * @param orders candidate orders
      * @param capacity maximum courier capacity
      * @return selected orders
      */

@@ -1,5 +1,8 @@
 package com.foodcourier.dsa.tree;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BST<E extends Comparable<E>> implements BSTInterface<E> {
 
     private Node<E> root;
@@ -115,5 +118,21 @@ public class BST<E extends Comparable<E>> implements BSTInterface<E> {
         }
 
         return node;
+    }
+
+    @Override
+    public List<E> inOrder() {
+        List<E> result = new ArrayList<>();
+        inOrderRecursive(root, result);
+        return result;
+    }
+
+    private void inOrderRecursive(Node<E> node, List<E> result) {
+        if (node == null) {
+            return;
+        }
+        inOrderRecursive(node.left, result);
+        result.add(node.data);
+        inOrderRecursive(node.right, result);
     }
 }

@@ -30,7 +30,7 @@ class QuickSortTest {
 
     @Test
     void handlesNullAndSingleItemLists() {
-        QuickSort.sort(null);
+        QuickSort.sort((List<Order>) null);
         List<Order> orders = new ArrayList<>(List.of(order("only", "2026-08-13T12:00:00")));
 
         QuickSort.sort(orders);
