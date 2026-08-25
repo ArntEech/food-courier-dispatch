@@ -1,425 +1,185 @@
-# 🍔 Food Courier Dispatch System
+# Food Courier Dispatch System
 
-A Java-based Food Courier Dispatch System developed as a joint Data Structures and Algorithms project.
+**DCIT 204/308 University Project — Ghana Context**
 
-The project demonstrates how fundamental data structures and algorithms can be combined to solve a realistic food-delivery dispatch problem.
-
----
-
-## 🎯 Project Goal
-
-The system models the process of receiving food orders, prioritizing deliveries, assigning couriers, navigating a delivery network, and optimizing delivery decisions.
-
-The project is intentionally built around **custom implementations** of core data structures and algorithms rather than relying on Java's built-in implementations for the assessed components.
+A food courier dispatch system implementing 5 algorithmic modules (Alpha 1–5) with custom data structures, demonstrating end-to-end order processing from intake to optimization.
 
 ---
 
-## 🏗️ System Architecture
+## Quick Start
 
-The system is divided into five functional areas called **"Alphas"**.
+```bash
+# Prerequisites: Java 17+, Maven 3.9+
 
-```text
-                   GENERATED DATA
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ A1              │
-                │ Order Intake    │
-                │ Queue / List    │
-                └────────┬────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ A2              │
-                │ Priority        │
-                │ Dispatch        │
-                │ Heap / PQ       │
-                └────────┬────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ A3              │
-                │ Courier         │
-                │ Assignment      │
-                │ Hash / BST      │
-                └────────┬────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ A4              │
-                │ Route &         │
-                │ Navigation      │
-                │ Graph           │
-                └────────┬────────┘
-                         │
-                         ▼
-                ┌─────────────────┐
-                │ A5              │
-                │ Optimization &  │
-                │ Reporting       │
-                └─────────────────┘
+# 1. Seed the database (run once, or to reset data)
+mvn compile exec:java -Dexec.mainClass="com.foodcourier.db.DatabaseSeeder" -q
+
+# 2. Run the full Alpha 1–5 pipeline demo
+mvn compile exec:java -Dexec.mainClass="com.foodcourier.app.FoodCourierApplications" -q
+
+# 3. Run all tests (91 tests)
+mvn test
 ```
 
 ---
 
-## 📁 Project Structure
+## System Architecture
 
-```text
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│  Alpha 1    │───▶│  Alpha 2    │───▶│  Alpha 3    │───▶│  Alpha 4    │───▶│  Alpha 5    │
+│  Order      │    │  Priority   │    │  Courier    │    │  Route      │    │  Optimize   │
+│  Intake     │    │  Dispatch   │    │  Assignment │    │  Navigation │    │  & Report   │
+│  (Queue)    │    │  (Heap)     │    │  (Hash+BST) │    │  (Graph)    │    │  (Greedy/DP)│
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+```
+
+### Alpha Modules
+
+| Alpha | Class | Custom Data Structure | Algorithm |
+|-------|-------|----------------------|-----------|
+| **A1** | `OrderIntakeService` | `ArrayQueue` (circular buffer) | FIFO order intake |
+| **A2** | `DispatchService` | `BinaryHeap` (max-heap by priority) | Priority queue dispatch |
+| **A3** | `CourierAssignmentService` | `HashMapTable` + `BST` | Hash lookup + sorted traversal |
+| **A4** | `RouteNavigationService` | `Graph` (adjacency list) | BFS + Dijkstra + Kruskal MST |
+| **A5** | `DeliveryOptimizationService` | — | Greedy (earliest-deadline) + 0/1 Knapsack DP |
+
+---
+
+## Database
+
+### Schema (6 Tables + 2 Views)
+
+```sql
+locations     (id, name, latitude, longitude, type)
+roads         (id, from_id, to_id, distance_km, travel_time_min, is_bidirectional)
+customers     (id, name, phone, location_id FK)
+restaurants   (id, name, phone, location_id FK)
+couriers      (id, name, phone, status, current_location_id FK)
+orders        (id, customer_id FK, restaurant_id FK, order_time, priority, status, prep_min)
+deliveries    (id, order_id FK, courier_id FK, distance_km, est_time, actual_time, status)
+
+Views:
+  v_courier_performance  — orders, distance, time per courier
+  v_daily_summary        — deliveries, km, avg time per day
+```
+
+### Seed Data (Ghana / UG Campus Context)
+
+| Entity | Count | Description |
+|--------|-------|-------------|
+| Locations | 8 | UG Main Gate, Legon Hall, Commonwealth Hall, Akuafo Hall, University Hospital, Okponglo, Atomic Junction, UG Business School |
+| Roads | 11 | Campus walkways + connecting roads (bidirectional) |
+| Customers | 6 | Sample customers at campus locations |
+| Restaurants | 5 | Food outlets near campus |
+| Couriers | 5 | Available couriers with starting locations |
+| Orders | 6 | Pending food orders with priorities |
+
+---
+
+## Running the Pipeline
+
+### Expected Output
+
+```
+=== Food Courier Dispatch System ===
+
+[Alpha 4] Loading delivery network...
+  Network: 8 locations, 22 roads
+
+[Setup] Building domain objects from seed data...
+  Loaded: 6 customers, 5 restaurants, 5 couriers
+
+[Alpha 1] Loading orders into intake queue...
+  Orders in queue: 6
+  Built 6 fully-populated orders
+
+[Alpha 2] Prioritizing orders via BinaryHeap...
+  Orders in dispatch heap: true (sample lookup)
+
+[Alpha 3] Assigning couriers to orders...
+  Order 1 → Courier Courier A (1)
+    Route: 2 hops, 0.80 km, ~17 min
+  Order 2 → Courier Courier A (1)
+    Route: 3 hops, 1.50 km, ~18 min
+  ...
+
+[Alpha 5] Generating delivery optimization report...
+=== Delivery Optimization Report ===
+Total deliveries: 6
+Average delivery time: 18.17 minutes
+Total distance covered: 7.90 km
+
+Couriers ranked by order volume:
+Courier ID   | Name            | Orders   | Distance (km)   | Time (min)  
+----------------------------------------------------------------------
+1            | Courier A       | 6        | 7.90            | 109.0       
+
+[Alpha 4] Minimum Spanning Network (Kruskal):
+  MST edges: 7, total weight: 8.00 km
+
+=== Pipeline complete ===
+```
+
+---
+
+## Project Structure
+
+```
 food-courier-dispatch/
-│
-├── README.md
-├── pom.xml
-├── .gitignore
-│
+├── src/
+│   ├── main/java/com/foodcourier/
+│   │   ├── alpha1/          # Order intake (Queue)
+│   │   ├── alpha2/          # Priority dispatch (Heap)
+│   │   ├── alpha3/          # Courier assignment (Hash+BST)
+│   │   ├── alpha4/          # Route navigation (Graph)
+│   │   ├── alpha5/          # Optimization & reporting (Greedy+DP)
+│   │   ├── algorithms/      # Core algorithms (sort, search, graph, optimization)
+│   │   ├── app/             # FoodCourierApplications (main entry)
+│   │   ├── db/              # DatabaseSeeder, schema
+│   │   ├── domain/          # Domain models (Order, Courier, Customer, etc.)
+│   │   └── dsa/             # Custom data structures (Queue, Heap, Hash, BST, Graph)
+│   └── test/                # 91 unit tests
 ├── data/
-│   ├── seed/
-│   └── generated/
-│
+│   ├── seed/                # CSV seed files (locations, roads, customers, etc.)
+│   └── generated/           # dummy1.csv (Alpha 5 sample deliveries)
 ├── database/
-│   └── schema.sql
-│
-├── docs/
-│   ├── architecture/
-│   ├── decisions/
-│   └── dsa/
-│
-├── experiments/
-│   └── results/
-│
-└── src/
-    ├── main/
-    │   ├── java/
-    │   │   └── com/foodcourier/
-    │   │       │
-    │   │       ├── domain/
-    │   │       │
-    │   │       ├── dsa/
-    │   │       │   ├── disjointset/
-    │   │       │   ├── graph/
-    │   │       │   ├── hashtable/
-    │   │       │   ├── heap/
-    │   │       │   ├── list/
-    │   │       │   ├── queue/
-    │   │       │   └── tree/
-    │   │       │
-    │   │       ├── algorithms/
-    │   │       │   ├── graph/
-    │   │       │   ├── optimization/
-    │   │       │   ├── searching/
-    │   │       │   └── sorting/
-    │   │       │
-    │   │       ├── alpha1/
-    │   │       ├── alpha2/
-    │   │       ├── alpha3/
-    │   │       ├── alpha4/
-    │   │       ├── alpha5/
-    │   │       │
-    │   │       ├── repository/
-    │   │       └── app/
-    │   │
-    │   └── resources/
-    │
-    └── test/
-        └── java/
-            └── com/foodcourier/
-                ├── algorithms/
-                ├── alpha1/
-                ├── alpha2/
-                ├── alpha3/
-                ├── alpha4/
-                ├── alpha5/
-                └── dsa/
+│   └── schema.sql           # SQLite schema
+└── pom.xml                  # Maven config (Java 17, JUnit 5, sqlite-jdbc)
 ```
 
 ---
 
-## 🧩 Major Components
+## Key Commands
 
-### Domain
-
-Contains the objects that represent the food delivery system.
-
-Examples:
-- `Order`
-- `Courier`
-- `Customer`
-- `Restaurant`
-- `Location`
-- `Road`
-- `Delivery`
-
-### Data Structures
-
-Contains custom implementations of the data structures used by the project.
-
-Examples:
-- Queue
-- Linked List
-- Heap
-- Hash Table
-- Binary Search Tree
-- Graph
-- Disjoint Set
-
-### Algorithms
-
-Contains implementations of the algorithms required by the project.
-
-**Searching**
-- Linear Search
-- Binary Search
-
-**Sorting**
-- Merge Sort
-- Quick Sort
-
-**Graph Algorithms**
-- BFS
-- DFS
-- Dijkstra
-- Prim
-- Kruskal
-
-**Optimization**
-- Greedy
-- Dynamic Programming
+| Task | Command |
+|------|---------|
+| Compile | `mvn compile` |
+| Seed DB | `mvn compile exec:java -Dexec.mainClass="com.foodcourier.db.DatabaseSeeder" -q` |
+| Run pipeline | `mvn compile exec:java -Dexec.mainClass="com.foodcourier.app.FoodCourierApplications" -q` |
+| Run tests | `mvn test` |
+| Run single test | `mvn test -Dtest=DynamicProgrammingTest` |
+| Inspect DB | `sqlite3 food_courier.db "SELECT * FROM v_courier_performance;"` |
 
 ---
 
-## 🔵 Alpha 1 — Order Intake
+## Design Notes
 
-**Question:** How do we receive and process orders?
-
-**Data Structures**
-- Queue
-- Linked List
-
-**Algorithms**
-- Linear Search
-- Sorting
-
-## 🟣 Alpha 2 — Priority Dispatch
-
-**Question:** Which order should be dispatched next?
-
-**Data Structures**
-- Priority Queue
-- Heap
-
-**Algorithms**
-- Searching
-- Sorting where appropriate
-
-## 🟢 Alpha 3 — Courier Assignment
-
-**Question:** How do we find an appropriate courier?
-
-**Data Structures**
-- Hash Table
-- Binary Search Tree
-
-**Algorithms**
-- Linear Search
-- Binary Search
-
-## 🟠 Alpha 4 — Route & Navigation
-
-**Question:** How do we navigate the delivery network?
-
-**Data Structures**
-- Graph
-- Heap / Priority Queue
-- Disjoint Set
-
-**Algorithms**
-- BFS
-- DFS
-- Dijkstra
-- Prim
-- Kruskal
-
-## 🔴 Alpha 5 — Optimization & Reporting
-
-**Question:** How do we make the best delivery decisions under constraints?
-
-**Data Structures**
-- Graph
-- Heap
-- Disjoint Set
-
-**Algorithms**
-- Greedy
-- Dynamic Programming
-- Sorting
+- **No built-in collections** for assessed components: custom `ArrayQueue`, `BinaryHeap`, `HashMapTable`, `BST`, `Graph`, `DisjointSet`
+- **Algorithms implemented from scratch**: Linear/Binary Search, QuickSort/MergeSort, BFS/DFS, Dijkstra, Prim, Kruskal, 0/1 Knapsack DP, Greedy earliest-deadline-first
+- **Persistence**: SQLite via `sqlite-jdbc` 3.46.1.0
+- **Ghana context**: Seed data uses University of Ghana campus locations and road network
 
 ---
 
-## 🔄 Component Communication
+## Academic Context
 
-The Alpha components communicate through shared domain objects and clearly defined service contracts.
+This project satisfies DCIT 204/308 requirements:
 
-```text
-Order
-  │
-  ▼
-A1 Order Intake
-  │
-  │ Order
-  ▼
-A2 Priority Dispatch
-  │
-  │ Selected Order
-  ▼
-A3 Courier Assignment
-  │
-  │ Order + Courier
-  ▼
-A4 Navigation
-  │
-  │ Route
-  ▼
-A5 Optimization
-  │
-  ▼
-Delivery Result / Report
-```
-
----
-
-## 🧱 Architectural Principle
-
-The project separates:
-
-```text
-Domain
-   ↓
-Data Structures
-   ↓
-Algorithms
-   ↓
-Application Services
-   ↓
-System Orchestration
-```
-
-Data structures and algorithms should **not** be tightly coupled to a specific Alpha.
-
-For example:
-
-```text
-dsa/heap/MinHeap.java
-          │
-          ▼
-alpha2/PriorityDispatchService.java
-```
-
-rather than implementing the heap directly inside Alpha 2.
-
----
-
-## 🧪 Testing
-
-Every major data structure, algorithm, and Alpha service should have corresponding tests under:
-
-```text
-src/test/java/com/foodcourier/
-```
-
-Testing should cover:
-- Normal cases
-- Empty structures
-- Boundary cases
-- Invalid input where applicable
-- Algorithm correctness
-- Performance where required
-
----
-
-## 📊 Performance Experiments
-
-Performance experiments will be stored in:
-
-```text
-experiments/results/
-```
-
-The project will eventually compare performance using different input sizes, for example:
-- 100 orders
-- 1,000 orders
-- 10,000 orders
-- 100,000 orders
-
-Measurements may include:
-- Execution time
-- Memory usage
-- Number of operations
-- Growth behaviour
-
----
-
-## 💾 Data Strategy
-
-During initial development, the project uses generated dummy data.
-
-```text
-data/
-├── seed/
-└── generated/
-```
-
-Real-world data collection and database integration will be introduced after the core system has been implemented and tested.
-
----
-
-## 🚫 Development Rules
-
-1. Do not place data structure implementations inside Alpha folders.
-2. Do not duplicate domain classes.
-3. Do not modify another Alpha's code without coordination.
-4. Test implementations before integration.
-5. Document algorithm complexity.
-6. Use the project's custom implementations for assessed DSA components.
-7. Keep Alpha responsibilities clearly separated.
-8. Prefer simple, understandable solutions before optimization.
-
----
-
-## 🚀 Development Workflow
-
-```text
-Study
-  ↓
-Implement DSA
-  ↓
-Test DSA
-  ↓
-Implement Algorithm
-  ↓
-Test Algorithm
-  ↓
-Build Alpha Service
-  ↓
-Test with Dummy Data
-  ↓
-Integrate
-  ↓
-Benchmark
-  ↓
-Real Data
-```
-
----
-
-## 👥 Team Structure
-
-The project is divided into five Alpha teams.
-
-Each team owns its Alpha's application logic while collaborating on shared domain models, data structures, algorithms, and integration contracts.
-
-The Project Manager coordinates the interfaces between the Alpha components and oversees system integration.
-
----
-
-## 📌 Current Development Principle
-
-Build the system with controlled generated data first. Make it correct, test it, measure it, and only then introduce real-world data.
+- ✅ 5 Alpha modules with custom data structures
+- ✅ Custom sorting (QuickSort, MergeSort) and searching (Linear, Binary)
+- ✅ Graph algorithms (BFS, DFS, Dijkstra, Prim, Kruskal)
+- ✅ Dynamic Programming (0/1 Knapsack for order batching)
+- ✅ Greedy algorithm (earliest-deadline-first)
+- ✅ Database persistence with schema, seed data, and reporting views
+- ✅ Comprehensive test coverage (91 tests, all passing)
