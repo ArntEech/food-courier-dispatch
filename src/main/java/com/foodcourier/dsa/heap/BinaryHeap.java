@@ -1,36 +1,14 @@
 package com.foodcourier.dsa.heap;
 
-import java.util.ArrayList;
-
 import com.foodcourier.domain.Order;
+import java.util.ArrayList;
 
 public class BinaryHeap implements HeapInterface<Order> {
 
-    private final ArrayList<Order> heap;
-    private final ArrayList<PriorityEntry<?>> priorityHeap;
-
-    public static final class PriorityEntry<T> {
-
-        private final T item;
-        private final double priority;
-
-        private PriorityEntry(T item, double priority) {
-            this.item = item;
-            this.priority = priority;
-        }
-
-        public T getItem() {
-            return item;
-        }
-
-        public double getPriority() {
-            return priority;
-        }
-    }
+    private ArrayList<Order> heap;
 
     public BinaryHeap() {
         heap = new ArrayList<>();
-        priorityHeap = new ArrayList<>();
     }
 
     @Override
