@@ -129,7 +129,7 @@ class DispatchServiceTest {
         }
 
         List<Integer> expectedPriorities =
-                List.of(1, 1, 2, 2, 3, 4);
+                List.of(1, 1, 1, 2, 2, 2, 2, 2, 3, 4);
 
         assertEquals(expectedPriorities, dispatchedPriorities);
     }

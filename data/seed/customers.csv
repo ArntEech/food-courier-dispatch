@@ -1,7 +1,9 @@
 customer_id,name,phone,location_id
-1,Student A,0200000001,2
-2,Student B,0200000002,3
-3,Student C,0200000003,4
-4,Student D,0200000004,5
-5,Student E,0200000005,8
-6,Student F,0200000006,1
+1,Customer A,0200000001,12
+2,Customer B,0200000002,13
+3,Customer C,0200000003,14
+4,Customer D,0200000004,15
+5,Customer E,0200000005,16
+6,Customer F,0200000006,17
+7,Customer G,0200000007,18
+8,Customer H,0200000008,19

@@ -41,7 +41,7 @@ class OrderIntakeServiceTest {
 
         service.loadSeedData(SEED_FILE);
 
-        assertEquals(6, service.getQueueSize());
+        assertEquals(10, service.getQueueSize());
         assertTrue(service.findOrderById("3").isPresent());
         assertEquals("1", service.getNextOrder().getId());
         assertEquals("2", service.findOrderById("2").get().getId());
@@ -49,7 +49,7 @@ class OrderIntakeServiceTest {
         List<Order> sorted = service.getOrdersSortedByTimestamp();
         assertEquals(List.of("2", "3", "4", "5", "6"),
                 sorted.subList(0, 5).stream().map(Order::getId).toList());
-        assertEquals(LocalDateTime.parse("2026-08-13T12:03:00"), sorted.get(0).getTimestamp());
+        assertEquals(LocalDateTime.parse("2026-08-26T12:05:00"), sorted.get(0).getTimestamp());
     }
 
     @Test

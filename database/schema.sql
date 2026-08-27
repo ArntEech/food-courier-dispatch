@@ -11,7 +11,7 @@ CREATE TABLE locations (
     name        TEXT NOT NULL,
     latitude    REAL NOT NULL,
     longitude   REAL NOT NULL,
-    type        TEXT NOT NULL CHECK (type IN ('CAMPUS', 'ROAD', 'OTHER'))
+    type        TEXT NOT NULL CHECK (type IN ('CAMPUS', 'ROAD', 'OTHER', 'RESTAURANT', 'CUSTOMER'))
 );
 
 -- ============================================================
