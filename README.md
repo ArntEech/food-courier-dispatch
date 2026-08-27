@@ -1,8 +1,8 @@
 # Food Courier Dispatch System
 
-**DCIT 204/308 University Project — Ghana Context**
+**DCIT 204/308 University Project — East Legon, Accra, Ghana Context**
 
-A food courier dispatch system implementing 5 algorithmic modules (Alpha 1–5) with custom data structures, demonstrating end-to-end order processing from intake to optimization.
+A food courier dispatch system implementing 5 algorithmic modules (Alpha 1–5) with custom data structures, demonstrating end-to-end order processing from intake to optimization. Uses **real East Legon restaurant locations** with verified OpenStreetMap GPS coordinates.
 
 ---
 
@@ -64,16 +64,16 @@ Views:
   v_daily_summary        — deliveries, km, avg time per day
 ```
 
-### Seed Data (Ghana / UG Campus Context)
+### Seed Data (East Legon, Accra Context)
 
 | Entity | Count | Description |
 |--------|-------|-------------|
-| Locations | 8 | UG Main Gate, Legon Hall, Commonwealth Hall, Akuafo Hall, University Hospital, Okponglo, Atomic Junction, UG Business School |
-| Roads | 11 | Campus walkways + connecting roads (bidirectional) |
-| Customers | 6 | Sample customers at campus locations |
-| Restaurants | 5 | Food outlets near campus |
-| Couriers | 5 | Available couriers with starting locations |
-| Orders | 6 | Pending food orders with priorities |
+| Locations | 19 | 6 real restaurants (The Living Room, PeterPan, Starbites, Papa's Pizza, DNR Turkish, Casa Bellini), 6 road nodes (Boundary Road, Lagos Avenue, Shiashie), 8 customer residences |
+| Roads | 36 | East Legon corridors (Boundary Road, Lagos Avenue, Jungle Road) — bidirectional |
+| Customers | 8 | Fictional residents at Flower St, Sunflower Rd, A&C Area, Jungle Rd, Lagos Ave, Boundary Rd, East Legon Hills, Trinity Ave |
+| Restaurants | 6 | Real East Legon restaurants with verified OSM coordinates |
+| Couriers | 5 | Couriers with AVAILABLE/BUSY/OFFLINE statuses at road nodes |
+| Orders | 10 | Realistic orders spanning all restaurants, priorities 1–4 |
 
 ---
 
@@ -85,38 +85,38 @@ Views:
 === Food Courier Dispatch System ===
 
 [Alpha 4] Loading delivery network...
-  Network: 8 locations, 22 roads
+  Network: 19 locations, 72 roads
 
 [Setup] Building domain objects from seed data...
-  Loaded: 6 customers, 5 restaurants, 5 couriers
+  Loaded: 8 customers, 6 restaurants, 5 couriers
 
 [Alpha 1] Loading orders into intake queue...
-  Orders in queue: 6
-  Built 6 fully-populated orders
+  Orders in queue: 10
+  Built 10 fully-populated orders
 
 [Alpha 2] Prioritizing orders via BinaryHeap...
   Orders in dispatch heap: true (sample lookup)
 
 [Alpha 3] Assigning couriers to orders...
-  Order 1 → Courier Courier A (1)
-    Route: 2 hops, 0.80 km, ~17 min
-  Order 2 → Courier Courier A (1)
-    Route: 3 hops, 1.50 km, ~18 min
+  Order 1 → Courier Courier 1 (1)
+    Route: 3 hops, 0.60 km, ~17 min
+  Order 2 → Courier Courier 1 (1)
+    Route: 4 hops, 0.65 km, ~17 min
   ...
 
 [Alpha 5] Generating delivery optimization report...
 === Delivery Optimization Report ===
-Total deliveries: 6
-Average delivery time: 18.17 minutes
-Total distance covered: 7.90 km
+Total deliveries: 10
+Average delivery time: 18.30 minutes
+Total distance covered: 13.70 km
 
 Couriers ranked by order volume:
 Courier ID   | Name            | Orders   | Distance (km)   | Time (min)  
 ----------------------------------------------------------------------
-1            | Courier A       | 6        | 7.90            | 109.0       
+1            | Courier 1       | 10       | 13.70           | 183.0       
 
 [Alpha 4] Minimum Spanning Network (Kruskal):
-  MST edges: 7, total weight: 8.00 km
+  MST edges: 18, total weight: 4.15 km
 
 === Pipeline complete ===
 ```
@@ -168,7 +168,7 @@ food-courier-dispatch/
 - **No built-in collections** for assessed components: custom `ArrayQueue`, `BinaryHeap`, `HashMapTable`, `BST`, `Graph`, `DisjointSet`
 - **Algorithms implemented from scratch**: Linear/Binary Search, QuickSort/MergeSort, BFS/DFS, Dijkstra, Prim, Kruskal, 0/1 Knapsack DP, Greedy earliest-deadline-first
 - **Persistence**: SQLite via `sqlite-jdbc` 3.46.1.0
-- **Ghana context**: Seed data uses University of Ghana campus locations and road network
+- **Ghana context**: Seed data uses real East Legon, Accra restaurant locations with verified OpenStreetMap GPS coordinates and geographically plausible road network
 
 ---
 
